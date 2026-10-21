@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSK 4 笔记词汇复习闪卡 (含例句)</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent-red: #ef4444;
+            --accent-green: #22c55e;
+            --accent-blue: #0284c7;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+            font-size: 1.8rem;
+        }
+
+        header p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            height: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            background-color: var(--primary-color);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* 闪卡 3D 容器 */
+        .flashcard-container {
+            perspective: 1000px;
+            width: 100%;
+            height: 380px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .flashcard {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border-radius: 16px;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .card-front {
+            font-size: 3.2rem;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .card-front .hint {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 15px;
+            font-weight: normal;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            justify-content: flex-start;
+            overflow-y: auto;
+        }
+
+        .pinyin {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-top: 5px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .meaning {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            padding: 0 10px;
+            line-height: 1.3;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        /* 例句版块样式 */
+        .example-box {
+            width: 100%;
+            background-color: #f1f5f9;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 12px;
+            box-sizing: border-box;
+            text-align: left;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+
+        .example-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .example-zh {
+            font-size: 1.05rem;
+            color: var(--text-main);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .example-py {
+            font-size: 0.85rem;
+            color: var(--accent-blue);
+            margin-bottom: 4px;
+        }
+
+        .example-en {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* 语音按钮样式 */
+        .audio-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.3rem;
+            padding: 4px 8px;
+            border-radius: 50%;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .audio-btn:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* 按钮控制区 */
+        .controls {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-dont-know {
+            background-color: #fee2e2;
+            color: var(--accent-red);
+        }
+        .btn-dont-know:hover {
+            background-color: #fecaca;
+        }
+
+        .btn-know {
+            background-color: #dcfce7;
+            color: var(--accent-green);
+        }
+        .btn-know:hover {
+            background-color: #bbf7d0;
+        }
+
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .btn-nav {
+            background-color: #e2e8f0;
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .btn-nav:hover {
+            background-color: #cbd5e1;
+        }
+
+        /* 错词本区域 */
+        .wrong-section {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .wrong-section h3 {
+            margin-top: 0;
+            color: var(--accent-red);
+            font-size: 1.1rem;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wrong-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .wrong-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f8fafc;
+            font-size: 0.95rem;
+        }
+
+        .wrong-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .wrong-item span {
+            cursor: pointer;
+        }
+
+        .remove-wrong {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .remove-wrong:hover {
+            color: var(--accent-red);
+        }
+
+        .empty-tip {
+            color: var(--text-muted);
+            text-align: center;
+            font-size: 0.9rem;
+            padding: 15px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>HSK 4 课堂笔记复习闪卡</h1>
+        <p>点击卡片翻转，查看拼音、释义与双语例句</p>
+    </header>
+
+    <div class="container">
+        <div class="stats">
+            <span id="counter">词语 1 / 106</span>
+            <span id="mode-indicator">笔记强化复习</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+
+        <!-- 闪卡主体 -->
+        <div class="flashcard-container" onclick="flipCard()">
+            <div class="flashcard" id="card">
+                <div class="card-face card-front">
+                    <span id="card-hanzi">看样子</span>
+                    <div class="hint">点击卡片查看拼音、释义与例句</div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="pinyin">
+                        <span id="card-pinyin">kàn yàngzi</span>
+                        <button class="audio-btn" onclick="event.stopPropagation(); playAudio()" title="播放标准发音">🔊</button>
+                    </div>
+                    <div class="meaning" id="card-meaning">好像 / Kelihatannya, sepertinya</div>
+                    
+                    <!-- 简短例句展示区 -->
+                    <div class="example-box">
+                        <div class="example-title">💡 例句 Example</div>
+                        <div class="example-zh" id="ex-zh">看样子要下雨了。</div>
+                        <div class="example-py" id="ex-py">Kàn yàngzi yào xià yǔ le.</div>
+                        <div class="example-en" id="ex-en">It looks like it's going to rain.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 自测操作按钮 -->
+        <div class="controls">
+            <button class="btn btn-dont-know" onclick="markWrong()">❌ 不会</button>
+            <button class="btn btn-know" onclick="markCorrect()">✔️ 认识</button>
+        </div>
+
+        <!-- 导航按钮 -->
+        <div class="nav-controls">
+            <button class="btn-nav" onclick="prevCard()">⬅️ 上一个</button>
+            <button class="btn-nav" onclick="nextCard()">下一个 ➡️</button>
+        </div>
+
+        <!-- 错词本展示区 -->
+        <div class="wrong-section">
+            <h3>
+                <span>📌 我的错词本 (“不会”的词)</span>
+                <span id="wrong-count" style="font-size: 0.85rem; color: var(--text-muted);">0 个词</span>
+            </h3>
+            <ul class="wrong-list" id="wrongList">
+                <div class="empty-tip">暂无错词，继续保持！💪</div>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 含有汉字、拼音、印尼文/英文释义及【双语带拼音例句】的完整数据库
+        const vocabData = [
+            { hanzi: "看样子", pinyin: "kàn yàngzi", meaning: "好像 / Kelihatannya, sepertinya", exZh: "看样子要下雨了。", exPy: "Kàn yàngzi yào xià yǔ le.", exEn: "It looks like it's going to rain." },
+            { hanzi: "熟悉", pinyin: "shúxī", meaning: "familiar", exZh: "我对这里很熟悉。", exPy: "Wǒ duì zhèlǐ hěn shúxī.", exEn: "I am very familiar with this place." },
+            { hanzi: "旧", pinyin: "jiù", meaning: "used, lama", exZh: "这辆自行车太旧了。", exPy: "Zhè liàng zìxíngchē tài jiù le.", exEn: "This bicycle is too old." },
+            { hanzi: "房价", pinyin: "fángjià", meaning: "House price", exZh: "这里的房价很高。", exPy: "Zhèlǐ de fángjià hěn gāo.", exEn: "House prices here are very high." },
+            { hanzi: "了解", pinyin: "liǎojiě", meaning: "明白 / understand", exZh: "我很了解他的性格。", exPy: "Wǒ hěn liǎojiě tā de xìnggé.", exEn: "I understand his personality very well." },
+            { hanzi: "节假日", pinyin: "jiéjiàrì", meaning: "tanggal merah, hari libur", exZh: "节假日商场很多人。", exPy: "Jiéjiàrì shāngchǎng hěn duō rén.", exEn: "The mall is very crowded on holidays." },
+            { hanzi: "推迟", pinyin: "tuīchí", meaning: "postpone", exZh: "会议推迟到了明天。", exPy: "Huìyì tuīchí dào le míngtiān.", exEn: "The meeting has been postponed until tomorrow." },
+            { hanzi: "讨厌", pinyin: "tǎoyàn", meaning: "不喜欢 / benci, tidak suka", exZh: "我讨厌下雨天。", exPy: "Wǒ tǎoyàn xià yǔ tiān.", exEn: "I hate rainy days." },
+            { hanzi: "需要", pinyin: "xūyào", meaning: "perlu", exZh: "你需要什么帮助吗？", exPy: "Nǐ xūyào shénme bāngzhù ma?", exEn: "Do you need any help?" },
+            { hanzi: "顾客", pinyin: "gùkè", meaning: "customer", exZh: "服务员对顾客很热情。", exPy: "Fúwùyuán duì gùkè hěn rèqíng.", exEn: "The waiter is very warm to customers." },
+            { hanzi: "吸引", pinyin: "xīyǐn", meaning: "attract", exZh: "这个活动吸引了很多人。", exPy: "Zhège huódòng xīyǐn le hěn duō rén.", exEn: "This event attracted many people." },
+            { hanzi: "肯定", pinyin: "kěndìng", meaning: "pasti (pasti tidak/akan/sangat...)", exZh: "他肯定会来的。", exPy: "Tā kěndìng huì lái de.", exEn: "He will definitely come." },
+            { hanzi: "乐团", pinyin: "yuètuán", meaning: "band, group", exZh: "他加入了一个乐团。", exPy: "Tā jiārù le yí gè yuètuán.", exEn: "He joined a musical band." },
+            { hanzi: "重新", pinyin: "chóngxīn", meaning: "ulang (dari start)", exZh: "请重新写一遍。", exPy: "Qǐng chóngxīn xiě yí biàn.", exEn: "Please write it again." },
+            { hanzi: "重新考虑", pinyin: "chóngxīn kǎolǜ", meaning: "mempertimbangkan ulang", exZh: "我会重新考虑这件事。", exPy: "Wǒ huì chóngxīn kǎolǜ zhè jiàn shì.", exEn: "I will reconsider this matter." },
+            { hanzi: "沙发", pinyin: "shāfā", meaning: "sofa", exZh: "猫坐在沙发上。", exPy: "Māo zuò zài shāfā shàng.", exEn: "The cat is sitting on the sofa." },
+            { hanzi: "一套", pinyin: "yí tào", meaning: "satu set", exZh: "我买了一套新衣服。", exPy: "Wǒ mǎi le yí tào xīn yīfu.", exEn: "I bought a set of new clothes." },
+            { hanzi: "表扬", pinyin: "biǎoyáng", meaning: "compliment", exZh: "老师表扬了他。", exPy: "Lǎoshī biǎoyáng le tā.", exEn: "The teacher praised him." },
+            { hanzi: "赞美", pinyin: "zànměi", meaning: "compliment / praise", exZh: "大家都赞美她的歌声。", exPy: "Dàjiā dōu zànměi tā de gēshēng.", exEn: "Everyone praised her singing voice." },
+            { hanzi: "批评", pinyin: "pīpíng", meaning: "criticize", exZh: "不要害怕被批评。", exPy: "Bú yào hàipà bèi pīpíng.", exEn: "Don't be afraid of being criticized." },
+            { hanzi: "责任", pinyin: "zérèn", meaning: "responsible, tanggung jawab", exZh: "这是我们的责任。", exPy: "Zhè shì wǒmen de zérèn.", exEn: "This is our responsibility." },
+            { hanzi: "负责", pinyin: "fùzé", meaning: "be responsible for, in charge for", exZh: "谁负责这个项目？", exPy: "Shéi fùzé zhège xiàngmù?", exEn: "Who is in charge of this project?" },
+            { hanzi: "成熟", pinyin: "chéngshú", meaning: "dewasa / mature", exZh: "他看起来很成熟。", exPy: "Tā kàn qǐlái hěn chéngshú.", exEn: "He looks very mature." },
+            { hanzi: "凉茶", pinyin: "liángchá", meaning: "teh dingin / teh herbal", exZh: "夏天喝凉茶很舒服。", exPy: "Xiàtiān hē liángchá hěn shūfu.", exEn: "Drinking herbal tea in summer is comfortable." },
+            { hanzi: "凉鞋", pinyin: "liángxié", meaning: "sepatu sandal", exZh: "她买了一双新凉鞋。", exPy: "Tā mǎi le yì shuāng xīn liángxié.", exEn: "She bought a pair of new sandals." },
+            { hanzi: "相信", pinyin: "xiāngxìn", meaning: "believe", exZh: "我相信你可以做到。", exPy: "Wǒ xiāngxìn nǐ kěyǐ zuò dào.", exEn: "I believe you can do it." },
+            { hanzi: "并", pinyin: "bìng", meaning: "还有 / as well as, dan juga", exZh: "任务完成并且效果很好。", exPy: "Rènwu wánchéng bìngqiě xiàoguǒ hěn hǎo.", exEn: "The task is completed and the result is great." },
+            { hanzi: "不过", pinyin: "búguò", meaning: "但是 / tetapi, namun", exZh: "虽然很累，不过很高兴。", exPy: "Suīrán hěn lèi, búguò hěn gāoxìng.", exEn: "Although tired, I am very happy." },
+            { hanzi: "由于", pinyin: "yóuyú", meaning: "因为 / karena, due to", exZh: "由于天气不好，比赛取消了。", exPy: "Yóuyú tiānqì bù hǎo, bǐsài qūxiāo le.", exEn: "Due to bad weather, the match was canceled." },
+            { hanzi: "研究生", pinyin: "yánjiūshēng", meaning: "master degree student", exZh: "他是北京大学的研究生。", exPy: "Tā shì Běijīng Dàxué de yánjiūshēng.", exEn: "He is a graduate student at Peking University." },
+            { hanzi: "一切", pinyin: "yíqiè", meaning: "semua", exZh: "祝你一切顺利！", exPy: "Zhù nǐ yíqiè shùnlì!", exEn: "Wish you all the best!" },
+            { hanzi: "除了……（还）", pinyin: "chúle ... (hái)", meaning: "selain ... (juga)", exZh: "除了苹果，我还喜欢香蕉。", exPy: "Chúle píngguǒ, wǒ hái xǐhuan xiāngjiāo.", exEn: "Besides apples, I also like bananas." },
+            { hanzi: "连……都/也……", pinyin: "lián ... dōu/yě ...", meaning: "bahkan ... pun ...", exZh: "连三岁孩子都知道。", exPy: "Lián sān suì hái zi dōu zhīdào.", exEn: "Even a three-year-old child knows it." },
+            { hanzi: "月底", pinyin: "yuèdǐ", meaning: "akhir bulan", exZh: "我们月底有个考试。", exPy: "Wǒmen yuèdǐ yǒu gè kǎoshì.", exEn: "We have an exam at the end of the month." },
+            { hanzi: "月初", pinyin: "yuèchū", meaning: "awal bulan", exZh: "他月初发了工资。", exPy: "Tā yuèchū fā le gōngzī.", exEn: "He got paid at the beginning of the month." },
+            { hanzi: "稍微", pinyin: "shāowēi", meaning: "agak, a bit", exZh: "请稍微等一下。", exPy: "Qǐng shāowēi děng yíxià.", exEn: "Please wait a little moment." },
+            { hanzi: "简单", pinyin: "jiǎndān", meaning: "easy", exZh: "这个题目很简单。", exPy: "Zhège tímù hěn jiǎndān.", exEn: "This question is very easy." },
+            { hanzi: "拒绝", pinyin: "jùjué", meaning: "menolak", exZh: "他拒绝了我的要求。", exPy: "Tā jùjué le wǒ de yāoqiú.", exEn: "He refused my request." },
+            { hanzi: "相反", pinyin: "xiāngfǎn", meaning: "opposite / berkebalikan", exZh: "他们的意见完全相反。", exPy: "Tāmen de yìjiàn wánquán xiāngfǎn.", exEn: "Their opinions are completely opposite." },
+            { hanzi: "性别", pinyin: "xìngbié", meaning: "gender", exZh: "请填一下表格上的性别。", exPy: "Qǐng tián yíxià biǎogé shàng de xìngbié.", exEn: "Please fill in the gender on the form." },
+            { hanzi: "理想", pinyin: "lǐxiǎng", meaning: "dream / mimpi", exZh: "当一名医生是我的理想。", exPy: "Dāng yì míng yīshēng shì wǒ de lǐxiǎng.", exEn: "Becoming a doctor is my dream." },
+            { hanzi: "交流", pinyin: "jiāoliú", meaning: "communicate / exchange / interact", exZh: "多和朋友交流很重要。", exPy: "Duō hé péngyou jiāoliú hěn zhòngyào.", exEn: "Communicating more with friends is important." },
+            { hanzi: "得意", pinyin: "déyì", meaning: "bangga / merasa sukses", exZh: "取得好成绩后他很得意。", exPy: "Qǔdé hǎo chéngjì hòu tā hěn déyì.", exEn: "He was very proud after getting good grades." },
+            { hanzi: "失败", pinyin: "shībài", meaning: "fail, gagal", exZh: "失败是成功之母。", exPy: "Shībài shì chénggōng zhī mǔ.", exEn: "Failure is the mother of success." },
+            { hanzi: "真实", pinyin: "zhēnshí", meaning: "real, nyata", exZh: "这是一个真实的故事。", exPy: "Zhè shì yí gè zhēnshí de gùshi.", exEn: "This is a real story." },
+            { hanzi: "成绩", pinyin: "chéngjì", meaning: "nilai", exZh: "她的考试成绩很好。", exPy: "Tā de kǎoshì chéngjì hěn hǎo.", exEn: "Her exam grades are very good." },
+            { hanzi: "任何", pinyin: "rènhé", meaning: "any, apa saja", exZh: "有任何问题可以问我。", exPy: "Yǒu rènhé wèntí kěyǐ wèn wǒ.", exEn: "You can ask me if you have any questions." },
+            { hanzi: "何时", pinyin: "héshí", meaning: "什么时候 / kapan", exZh: "我们何时能再见面？", exPy: "Wǒmen héshí néng zài jiànmiàn?", exEn: "When can we meet again?" },
+            { hanzi: "减少", pinyin: "jiǎnshǎo", meaning: "makin sedikit / berkurang", exZh: "垃圾的数量减少了。", exPy: "Lājī de shùliàng jiǎnshǎo le.", exEn: "The amount of garbage has decreased." },
+            { hanzi: "增进", pinyin: "zēngjìn", meaning: "makin banyak / bertambah", exZh: "这能增进我们的了解。", exPy: "Zhè néng zēngjìn wǒmen de liǎojiě.", exEn: "This can enhance our understanding." },
+            { hanzi: "免费", pinyin: "miǎnfèi", meaning: "gratis", exZh: "这里的无线网是免费的。", exPy: "Zhèlǐ de wúxiànwǎng shì miǎnfèi de.", exEn: "The Wi-Fi here is free." },
+            { hanzi: "借", pinyin: "jiè", meaning: "meminjam", exZh: "我可以借你的笔吗？", exPy: "Wǒ kěyǐ jiè nǐ de bǐ ma?", exEn: "May I borrow your pen?" },
+            { hanzi: "错", pinyin: "cuò", meaning: "salah", exZh: "对不起，是我搞错了。", exPy: "Duìbuqǐ, shì wǒ gǎo cuò le.", exEn: "Sorry, I made a mistake." },
+            { hanzi: "手表", pinyin: "shǒubiǎo", meaning: "jam tangan", exZh: "这块手表很漂亮。", exPy: "Zhè kuài shǒubiǎo hěn piàoliang.", exEn: "This watch is very pretty." },
+            { hanzi: "规定", pinyin: "guīdìng", meaning: "rules, laws, aturan", exZh: "大家要遵守学校的规定。", exPy: "Dàjiā yào zūnshǒu xuéxiào de guīdìng.", exEn: "Everyone should abide by the school rules." },
+            { hanzi: "宾馆", pinyin: "bīnguǎn", meaning: "hotel", exZh: "我们住在一家干净的宾馆。", exPy: "Wǒmen zhù zài yì jiā gānjìng de bīnguǎn.", exEn: "We stayed in a clean hotel." },
+            { hanzi: "酸", pinyin: "suān", meaning: "sour, kecut", exZh: "这个苹果有点酸。", exPy: "Zhège píngguǒ yǒudiǎnr suān.", exEn: "This apple is a bit sour." },
+            { hanzi: "辣", pinyin: "là", meaning: "spicy, pedas", exZh: "四川菜非常辣。", exPy: "Sìchuān cài fēicháng là.", exEn: "Sichuan food is very spicy." },
+            { hanzi: "激动", pinyin: "jīdòng", meaning: "excited / terharu, menggebu-gebu", exZh: "听到好消息他很激动。", exPy: "Tīngdào hǎo xiāoxi tā hěn jīdòng.", exEn: "He was very excited to hear the good news." },
+            { hanzi: "害怕", pinyin: "hàipà", meaning: "scared, takut", exZh: "不要害怕失败。", exPy: "Bú yào hàipà shībài.", exEn: "Don't be afraid of failure." },
+            { hanzi: "心情", pinyin: "xīnqíng", meaning: "mood", exZh: "今天我的心情很好。", exPy: "Jīntiān wǒ de xīnqíng hěn hǎo.", exEn: "I am in a good mood today." },
+            { hanzi: "耐心", pinyin: "nàixīn", meaning: "sabar", exZh: "老师很有耐心地回答问题。", exPy: "Lǎoshī hěn yǒu nàixīn de huídá wèntí.", exEn: "The teacher answered questions patiently." },
+            { hanzi: "甚至", pinyin: "shènzhì", meaning: "bahkan / and even...", exZh: "他甚至忘了自己的生日。", exPy: "Tā shènzhì wàng le zìjǐ de shēngrì.", exEn: "He even forgot his own birthday." },
+            { hanzi: "方向", pinyin: "fāngxiàng", meaning: "arah", exZh: "我们走错了方向。", exPy: "Wǒmen zǒu cuò le fāngxiàng.", exEn: "We went in the wrong direction." },
+            { hanzi: "普遍", pinyin: "pǔbiàn", meaning: "umum", exZh: "这是一个很普遍的现象。", exPy: "Zhè shì yí gè hěn pǔbiàn de xiànxiàng.", exEn: "This is a very common phenomenon." },
+            { hanzi: "打针", pinyin: "dǎzhēn", meaning: "suntik", exZh: "医生给我打了一针。", exPy: "Yīshēng gěi wǒ dǎ le yì zhēn.", exEn: "The doctor gave me an injection." },
+            { hanzi: "果然", pinyin: "guǒrán", meaning: "just like expected, ternyata真的", exZh: "今天果然下雨了。", exPy: "Jīntiān guǒrán xià yǔ le.", exEn: "It indeed rained today as expected." },
+            { hanzi: "注意", pinyin: "zhùyì", meaning: "notice / attention, memperhatikan", exZh: "请注意安全！", exPy: "Qǐng zhùyì ānquán!", exEn: "Please pay attention to safety!" },
+            { hanzi: "森林", pinyin: "sēnlín", meaning: "jungle / forest", exZh: "森林里有很多树。", exPy: "Sēnlín lǐ yǒu hěn duō shù.", exEn: "There are many trees in the forest." },
+            { hanzi: "知识", pinyin: "zhīshi", meaning: "knowledge", exZh: "书本里有丰富的知识。", exPy: "Shūběn lǐ yǒu fēngfù de zhīshi.", exEn: "There is rich knowledge in books." },
+            { hanzi: "当地", pinyin: "dāngdì", meaning: "local, lokal", exZh: "我们尝了当地的美食。", exPy: "Wǒmen cháng le dāngdì de měishí.", exEn: "We tasted the local food." },
+            { hanzi: "到底", pinyin: "dàodǐ", meaning: "sebenarnya (dipakai saat bertanya)", exZh: "你到底去不去？", exPy: "Nǐ dàodǐ qù bú qù?", exEn: "Are you going or not after all?" },
+            { hanzi: "集合", pinyin: "jíhé", meaning: "kumpul / gather", exZh: "大家早上八点在学校集合。", exPy: "Dàjiā zǎoshang bā diǎn zài xuéxiào jíhé.", exEn: "Everyone gather at school at 8 AM." },
+            { hanzi: "身躺（躺）", pinyin: "tǎng", meaning: "tiduran / berbaring", exZh: "他躺在床上休息。", exPy: "Tā tǎng zài chuáng shàng xiūxi.", exEn: "He is lying on the bed resting." },
+            { hanzi: "厚", pinyin: "hòu", meaning: "thick, tebal", exZh: "冬天要穿厚衣服。", exPy: "Dōngtiān yào chuān hòu yīfu.", exEn: "Wear thick clothes in winter." },
+            { hanzi: "区别", pinyin: "qūbié", meaning: "perbedaan", exZh: "这两个词有什么区别？", exPy: "Zhè liǎng gè cí yǒu shénme qūbié?", exEn: "What is the difference between these two words?" },
+            { hanzi: "饮料", pinyin: "yǐnliào", meaning: "minuman", exZh: "你想喝什么饮料？", exPy: "Nǐ xiǎng hē shénme yǐnliào?", exEn: "What drink would you like?" },
+            { hanzi: "自然", pinyin: "zìrán", meaning: "nature, alam", exZh: "我们要保护大自然。", exPy: "Wǒmen yào bǎohù dà zìrán.", exEn: "We need to protect nature." },
+            { hanzi: "自动", pinyin: "zìdòng", meaning: "otomatis", exZh: "这扇门是自动的。", exPy: "Zhè shàn mén shì zìdòng de.", exEn: "This door is automatic." },
+            { hanzi: "环境", pinyin: "huánjìng", meaning: "environment, lingkungan", exZh: "这里的环境非常美。", exPy: "Zhèlǐ de huánjìng fēicháng měi.", exEn: "The environment here is very beautiful." },
+            { hanzi: "交通", pinyin: "jiāotōng", meaning: "lalu lintas", exZh: "这里的交通很方便。", exPy: "Zhèlǐ de jiāotōng hěn fāngbiàn.", exEn: "Transportation here is very convenient." },
+            { hanzi: "打印机", pinyin: "dǎyìnjī", meaning: "printer", exZh: "打印机坏了。", exPy: "Dǎyìnjī huài le.", exEn: "The printer is broken." },
+            { hanzi: "导游", pinyin: "dǎoyóu", meaning: "tour guide", exZh: "导游给我们介绍了历史。", exPy: "Dǎoyóu gěi wǒmen jièshào le lìshǐ.", exEn: "The tour guide introduced the history to us." },
+            { hanzi: "复印", pinyin: "fùyìn", meaning: "fotokopi", exZh: "请帮我复印这份文件。", exPy: "Qǐng bāng wǒ fùyìn zhè fèn wénjiàn.", exEn: "Please photocopy this document for me." },
+            { hanzi: "普通", pinyin: "pǔtōng", meaning: "biasa", exZh: "这只是一件普通的事情。", exPy: "Zhè zhǐshì yí jiàn pǔtōng de shìqing.", exEn: "This is just an ordinary thing." },
+            { hanzi: "严格", pinyin: "yángé", meaning: "strict, ketat", exZh: "老师对我们要求很严格。", exPy: "Lǎoshī duì wǒmen yāoqiú hěn yángé.", exEn: "The teacher is strict with us." },
+            { hanzi: "后悔", pinyin: "hòuhuǐ", meaning: "regret, menyesal", exZh: "我一点儿也不后悔。", exPy: "Wǒ yìdiǎnr yě bù hòuhuǐ.", exEn: "I don't regret it at all." },
+            { hanzi: "重点", pinyin: "zhòngdiǎn", meaning: "main point, poin utama", exZh: "请把重点记下来。", exPy: "Qǐng bǎ zhòngdiǎn jì xiàlái.", exEn: "Please note down the main points." },
+            { hanzi: "信箱", pinyin: "xìnxiāng", meaning: "inbox / email", exZh: "请检查一下你的信箱。", exPy: "Qǐng jiǎnchá yíxià nǐ de xìnxiāng.", exEn: "Please check your inbox." },
+            { hanzi: "内容", pinyin: "nèiróng", meaning: "content, isi", exZh: "这本书的内容很丰富。", exPy: "Zhè běn shū de nèiróng hěn fēngfù.", exEn: "The content of this book is rich." },
+            { hanzi: "计划", pinyin: "jìhuà", meaning: "proposal / rencana", exZh: "我们有一个新的计划。", exPy: "Wǒmen yǒu yí gè xīn de jìhuà.", exEn: "We have a new plan." },
+            { hanzi: "讨论", pinyin: "tǎolùn", meaning: "discuss, berdiskusi", exZh: "大家正在讨论这个问题。", exPy: "Dàjiā zhèngzài tǎolùn zhège wèntí.", exEn: "Everyone is discussing this problem." },
+            { hanzi: "基础", pinyin: "jīchǔ", meaning: "foundation, dasar", exZh: "他的汉语基础很好。", exPy: "Tā de Hànyǔ jīchǔ hěn hǎo.", exEn: "His Chinese foundation is very good." },
+            { hanzi: "即使", pinyin: "jíshǐ", meaning: "walaupun / meskipun", exZh: "即使下雨我也要去。", exPy: "Jíshǐ xià yǔ wǒ yě yào qù.", exEn: "Even if it rains, I will go." },
+            { hanzi: "其实", pinyin: "qíshí", meaning: "actually, sebenarnya", exZh: "其实他不懂这个问题。", exPy: "Qíshí tā bù dǒng zhège wèntí.", exEn: "Actually, he doesn't understand this question." },
+            { hanzi: "而且", pinyin: "érqiě", meaning: "and also, lagipula", exZh: "这种水果好吃而且便宜。", exPy: "Zhè zhǒng shuǐguǒ hǎochī érqiě piányi.", exEn: "This fruit is tasty and cheap." },
+            { hanzi: "重复", pinyin: "chóngfù", meaning: "repeat, mengulang", exZh: "请不要重复同样的话。", exPy: "Qǐng bú yào chóngfù tóngyàng de huà.", exEn: "Please don't repeat the same words." },
+            { hanzi: "复习", pinyin: "fùxí", meaning: "review, mengulang pelajaran", exZh: "考试前要好好复习。", exPy: "Kǎoshì qián yào hǎohāo fùxí.", exEn: "Review well before the exam." },
+            { hanzi: "经历", pinyin: "jīnglì", meaning: "experience (pengalaman yang dilalui)", exZh: "这是一段难忘的经历。", exPy: "Zhè shì yí duàn nánwàng de jīnglì.", exEn: "This is an unforgettable experience." },
+            { hanzi: "总结", pinyin: "zǒngjié", meaning: "recap, kesimpulan", exZh: "会议结束时做个总结。", exPy: "Huìyì jiéshù shí zuò gè zǒngjié.", exEn: "Make a summary at the end of the meeting." },
+            { hanzi: "尊重", pinyin: "zūnzhòng", meaning: "hormat / respect", exZh: "我们要尊重别人的选择。", exPy: "Wǒmen yào zūnzhòng biérén de xuǎnzé.", exEn: "We should respect other people's choices." },
+            { hanzi: "工具", pinyin: "gōngjù", meaning: "alat", exZh: "字典是学习语言的工具。", exPy: "Zìdiǎn shì xuéxí yǔyán de gōngjù.", exEn: "A dictionary is a tool for learning language." },
+            { hanzi: "楼", pinyin: "lóu", meaning: "lantai / gedung", exZh: "我住在三楼。", exPy: "Wǒ zhù zài sān lóu.", exEn: "I live on the 3rd floor." },
+            { hanzi: "文化", pinyin: "wénhuà", meaning: "budaya", exZh: "我对中国文化很感兴趣。", exPy: "Wǒ duì Zhōngguó wénhuà hěn gǎn xìngqù.", exEn: "I am interested in Chinese culture." },
+            { hanzi: "比较", pinyin: "bǐjiào", meaning: "compare, lumayan / membandingkan", exZh: "今天天气比较冷。", exPy: "Jīntiān tiānqì bǐjiào lěng.", exEn: "Today's weather is relatively cold." },
+            { hanzi: "勇敢", pinyin: "yǒnggǎn", meaning: "berani", exZh: "他是一个勇敢的战士。", exPy: "Tā shì yí gè yǒnggǎn de zhànshì.", exEn: "He is a brave soldier." },
+            { hanzi: "镜子", pinyin: "jìngzi", meaning: "cermin", exZh: "请照照镜子。", exPy: "Qǐng zhào zhào jìngzi.", exEn: "Please look in the mirror." },
+            { hanzi: "聊天", pinyin: "liáotiān", meaning: "ngobrol", exZh: "我们常常一起聊天。", exPy: "Wǒmen chángcháng yìqǐ liáotiān.", exEn: "We often chat together." },
+            { hanzi: "少数", pinyin: "shǎoshù", meaning: "minoritas, jumlah sedikit", exZh: "只有少数人赞成这个计划。", exPy: "Zhǐyǒu shǎoshù rén zànchéng zhège jìhuà.", exEn: "Only a minority agreed with this plan." },
+            { hanzi: "少数民族", pinyin: "shǎoshù mínzú", meaning: "suku minoritas", exZh: "中国有55个少数民族。", exPy: "Zhōngguó yǒu wǔshíwǔ gè shǎoshù mínzú.", exEn: "China has 55 ethnic minorities." },
+            { hanzi: "好处", pinyin: "hǎochu", meaning: "benefit, keuntungan/manfaat", exZh: "多运动对身体有好处。", exPy: "Duō yùndòng duì shēntǐ yǒu hǎochu.", exEn: "More exercise is good for the body." },
+            { hanzi: "压力", pinyin: "yālì", meaning: "pressure, tekanan", exZh: "工作压力太大了。", exPy: "Gōngzuò yālì tài dà le.", exEn: "Work pressure is too high." }
+        ];
+
+        let currentIndex = 0;
+        let wrongWords = JSON.parse(localStorage.getItem('hsk4_notes_wrong_words_v2')) || [];
+
+        const cardEl = document.getElementById('card');
+        const hanziEl = document.getElementById('card-hanzi');
+        const pinyinEl = document.getElementById('card-pinyin');
+        const meaningEl = document.getElementById('card-meaning');
+        const exZhEl = document.getElementById('ex-zh');
+        const exPyEl = document.getElementById('ex-py');
+        const exEnEl = document.getElementById('ex-en');
+
+        const counterEl = document.getElementById('counter');
+        const progressEl = document.getElementById('progress');
+        const wrongListEl = document.getElementById('wrongList');
+        const wrongCountEl = document.getElementById('wrong-count');
+
+        function updateCard() {
+            const currentItem = vocabData[currentIndex];
+            hanziEl.textContent = currentItem.hanzi;
+            pinyinEl.textContent = currentItem.pinyin;
+            meaningEl.textContent = currentItem.meaning;
+            
+            exZhEl.textContent = currentItem.exZh;
+            exPyEl.textContent = currentItem.exPy;
+            exEnEl.textContent = currentItem.exEn;
+
+            // 动态调整正面字号
+            if (currentItem.hanzi.length > 4) {
+                hanziEl.style.fontSize = "2.2rem";
+            } else if (currentItem.hanzi.length > 2) {
+                hanziEl.style.fontSize = "2.8rem";
+            } else {
+                hanziEl.style.fontSize = "3.2rem";
+            }
+
+            counterEl.textContent = `词语 ${currentIndex + 1} / ${vocabData.length}`;
+            progressEl.style.width = `${((currentIndex + 1) / vocabData.length) * 100}%`;
+
+            cardEl.classList.remove('flipped');
+        }
+
+        function flipCard() {
+            cardEl.classList.toggle('flipped');
+        }
+
+        function nextCard() {
+            if (currentIndex < vocabData.length - 1) {
+                currentIndex++;
+                updateCard();
+            } else {
+                alert('🎉 恭喜你已经完成全部 106 个带例句词汇的复习！');
+                currentIndex = 0;
+                updateCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCard();
+            }
+        }
+
+        function markCorrect() {
+            nextCard();
+        }
+
+        function markWrong() {
+            const currentItem = vocabData[currentIndex];
+            const exists = wrongWords.some(item => item.hanzi === currentItem.hanzi);
+            if (!exists) {
+                wrongWords.push(currentItem);
+                saveAndRenderWrongList();
+            }
+            nextCard();
+        }
+
+        function removeWrong(index, event) {
+            event.stopPropagation();
+            wrongWords.splice(index, 1);
+            saveAndRenderWrongList();
+        }
+
+        function saveAndRenderWrongList() {
+            localStorage.setItem('hsk4_notes_wrong_words_v2', JSON.stringify(wrongWords));
+            wrongCountEl.textContent = `${wrongWords.length} 个词`;
+            
+            if (wrongWords.length === 0) {
+                wrongListEl.innerHTML = `<div class="empty-tip">暂无错词，继续保持！💪</div>`;
+                return;
+            }
+
+            wrongListEl.innerHTML = '';
+            wrongWords.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'wrong-item';
+                li.innerHTML = `
+                    <span onclick="jumpToWord('${item.hanzi}')"><strong>${item.hanzi}</strong> (${item.pinyin}) - ${item.meaning}</span>
+                    <button class="remove-wrong" onclick="removeWrong(${index}, event)">移出</button>
+                `;
+                wrongListEl.appendChild(li);
+            });
+        }
+
+        function jumpToWord(hanzi) {
+            const index = vocabData.findIndex(item => item.hanzi === hanzi);
+            if (index !== -1) {
+                currentIndex = index;
+                updateCard();
+            }
+        }
+
+        function playAudio() {
+            const currentItem = vocabData[currentIndex];
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                // 自动先朗读词语，停顿一下朗读例句
+                const textToRead = `${currentItem.hanzi}。 ${currentItem.exZh}`;
+                const utterance = new SpeechSynthesisUtterance(textToRead);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.85;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('您的浏览器不支持语音朗读功能');
+            }
+        }
+
+        updateCard();
+        saveAndRenderWrongList();
+    </script>
+</body>
+</html>
